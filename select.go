@@ -56,18 +56,16 @@ func WithKeySet(columns []string, values []any, desc bool) SelectOption {
 			}
 			tc := table.Col(columns[i])
 
-			// Add the "greater than" condition for the current column
-			currentConditions[i] = tc.Gt(values[i])
+			if desc {
+				currentConditions[i] = tc.Lt(values[i])
+				orderby = append(orderby, tc.Desc())
+			} else {
+				currentConditions[i] = tc.Gt(values[i])
+				orderby = append(orderby, tc.Asc())
+			}
 
 			// Combine into an AND expression and add to the OR conditions
 			conditions = append(conditions, goqu.And(currentConditions...))
-
-			// OrderBy
-			if desc {
-				orderby = append(orderby, tc.Desc())
-				continue
-			}
-			orderby = append(orderby, tc.Asc())
 		}
 
 		s = s.Where(goqu.Or(conditions...)).Order(orderby...)
